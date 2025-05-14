@@ -172,3 +172,12 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+
+# Editor settings
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# uv
+.uv/
