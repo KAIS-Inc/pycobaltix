@@ -1,4 +1,4 @@
-from pycobaltix.slack.slack_pepe import WebHook as SlackWebHook, Bot as SlackBot
+from pycobaltix.slack.slack_web_hook import SlackWebHook, SlackBot
 
 __all__ = [
     "SlackWebHook",

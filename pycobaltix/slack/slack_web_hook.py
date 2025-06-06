@@ -4,8 +4,8 @@ import json
 from slack_sdk import WebClient
 from slack_sdk.errors import SlackApiError
 
-class WebHook:
-    """웹훅 페페 생성자
+class SlackWebHook:
+    """웹훅 생성자
 
         Args:
             webhook_url (str): 웹훅 URL
@@ -75,16 +75,16 @@ class WebHook:
             raise ValueError(
                 "웹훅 URL 을 제공해야 합니다. / You must provide either webhook URL.")
 
-class Bot:
+class SlackBot:
     """
-    Slack 메시지를 보내고 업데이트하는 페페\n
-    Pepe for sending and updating Slack messages
+    Slack 메시지를 보내고 업데이트하는 봇\n
+    Bot for sending and updating Slack messages
     """
 
     def __init__(self, channel: str, bot_token: str) -> None:
         """
-        SlackPepe 클래스의 생성자입니다.
-        Constructor for the SlackPepe class.
+        SlackBot 클래스의 생성자입니다.
+        Constructor for the SlackBot class.
 
         :param channel: Slack 채널 ID (선택적) / Slack channel ID (optional)
         :param bot_token: Slack 봇 토큰 (선택적) / Slack bot token (optional)
