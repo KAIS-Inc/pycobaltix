@@ -11,9 +11,13 @@ from pycobaltix.schemas.responses import (
     ErrorResponse,
 )
 
+from pycobaltix.slack import SlackWebHook, SlackBot
+
 __all__ = [
     "APIResponse",
     "PaginatedAPIResponse",
     "PaginationInfo",
     "ErrorResponse",
+    "SlackWebHook",
+    "SlackBot",
 ]
