@@ -2,14 +2,11 @@
 응답 모델 테스트
 """
 
-import pytest
-from pydantic import ValidationError
-
 from pycobaltix import (
     APIResponse,
+    ErrorResponse,
     PaginatedAPIResponse,
     PaginationInfo,
-    ErrorResponse,
 )
 
 
