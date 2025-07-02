@@ -1,0 +1,181 @@
+name: 테스트 및 배포
+
+on:
+    push:
+        branches: [main, develop]
+    pull_request:
+        branches: [main, develop]
+    release:
+        types: [published]
+
+jobs:
+    test:
+        runs-on: ubuntu-latest
+        strategy:
+            matrix:
+                python-version: ["3.11", "3.12"]
+
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Python ${{ matrix.python-version }} 설정
+              uses: actions/setup-python@v4
+              with:
+                  python-version: ${{ matrix.python-version }}
+
+            - name: uv 설치
+              run: |
+                  curl -LsSf https://astral.sh/uv/install.sh | sh
+                  echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+
+            - name: 의존성 설치
+              run: |
+                  uv sync --dev
+
+            - name: 코드 린팅 (ruff)
+              run: |
+                  uv run ruff check .
+                  uv run ruff format --check .
+
+            - name: 타입 체크 (mypy)
+              run: |
+                  uv run mypy pycobaltix --ignore-missing-imports
+
+            - name: 단위 테스트 실행
+              run: |
+                  uv run pytest tests/ -m "unit" --cov=pycobaltix --cov-report=xml --cov-report=term-missing
+
+            - name: 통합 테스트 실행 (API 키 있을 때만)
+              if: env.NAVER_API_KEY_ID != '' && env.NAVER_API_KEY != ''
+              env:
+                  NAVER_API_KEY_ID: ${{ secrets.NAVER_API_KEY_ID }}
+                  NAVER_API_KEY: ${{ secrets.NAVER_API_KEY }}
+              run: |
+                  uv run pytest tests/ -m "integration" --cov=pycobaltix --cov-append --cov-report=xml --cov-report=term-missing
+
+            - name: 테스트 커버리지 업로드
+              if: matrix.python-version == '3.12'
+              uses: codecov/codecov-action@v3
+              with:
+                  file: ./coverage.xml
+                  flags: unittests
+                  name: codecov-umbrella
+
+    security-scan:
+        runs-on: ubuntu-latest
+        needs: test
+
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Python 설정
+              uses: actions/setup-python@v4
+              with:
+                  python-version: "3.12"
+
+            - name: uv 설치
+              run: |
+                  curl -LsSf https://astral.sh/uv/install.sh | sh
+                  echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+
+            - name: 보안 스캔 (bandit)
+              run: |
+                  uv add --dev bandit
+                  uv run bandit -r pycobaltix/ -f json -o bandit-report.json || true
+
+            - name: 의존성 취약점 스캔 (safety)
+              run: |
+                  uv add --dev safety
+                  uv run safety check --json --output safety-report.json || true
+
+    build:
+        runs-on: ubuntu-latest
+        needs: [test, security-scan]
+        if: github.event_name == 'release' || github.ref == 'refs/heads/main'
+
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Python 설정
+              uses: actions/setup-python@v4
+              with:
+                  python-version: "3.12"
+
+            - name: uv 설치
+              run: |
+                  curl -LsSf https://astral.sh/uv/install.sh | sh
+                  echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+
+            - name: 패키지 빌드
+              run: |
+                  uv build
+
+            - name: 빌드 아티팩트 업로드
+              uses: actions/upload-artifact@v3
+              with:
+                  name: dist
+                  path: dist/
+
+    publish:
+        runs-on: ubuntu-latest
+        needs: build
+        if: github.event_name == 'release'
+        environment: production
+
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Python 설정
+              uses: actions/setup-python@v4
+              with:
+                  python-version: "3.12"
+
+            - name: uv 설치
+              run: |
+                  curl -LsSf https://astral.sh/uv/install.sh | sh
+                  echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+
+            - name: 빌드 아티팩트 다운로드
+              uses: actions/download-artifact@v3
+              with:
+                  name: dist
+                  path: dist/
+
+            - name: PyPI 테스트 배포
+              env:
+                  TWINE_USERNAME: __token__
+                  TWINE_PASSWORD: ${{ secrets.TEST_PYPI_API_TOKEN }}
+              run: |
+                  uv add --dev twine
+                  uv run twine upload --repository testpypi dist/* --skip-existing
+
+            - name: PyPI 배포
+              if: success()
+              env:
+                  TWINE_USERNAME: __token__
+                  TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
+              run: |
+                  uv run twine upload dist/*
+
+    notify:
+        runs-on: ubuntu-latest
+        needs: [test, security-scan, build, publish]
+        if: always()
+
+        steps:
+            - name: 배포 결과 알림
+              if: env.SLACK_WEBHOOK_URL != ''
+              env:
+                  SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+              run: |
+                  if [ "${{ needs.publish.result }}" == "success" ]; then
+                    STATUS="✅ 성공"
+                    MESSAGE="pycobaltix 패키지가 성공적으로 배포되었습니다."
+                  else
+                    STATUS="❌ 실패"
+                    MESSAGE="pycobaltix 패키지 배포에 실패했습니다."
+                  fi
+
+                  curl -X POST -H 'Content-type: application/json' \
+                    --data "{\"text\":\"$STATUS: $MESSAGE\nCommit: ${{ github.sha }}\nRef: ${{ github.ref }}\"}" \
+                    $SLACK_WEBHOOK_URL

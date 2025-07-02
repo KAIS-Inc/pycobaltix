@@ -20,7 +20,9 @@ requires-python = ">=3.11"
 dependencies = [
     "aiohttp>=3.12.9",
     "pydantic>=2.0.0",
+    "pyproj>=3.7.1",
     "requests>=2.32.3",
+    "ruff>=0.12.1",
     "slack-sdk>=3.35.0",
     "typing-extensions>=4.0.0",
 ]
@@ -32,9 +34,17 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
     "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+    "pytest-mock>=3.10.0",
+    "pytest-asyncio>=0.21.0",
+    "pytest-watch>=4.2.0",
+    "responses>=0.23.0",
     "black>=23.0.0",
     "isort>=5.0.0",
     "mypy>=1.0.0",
+    "tox>=4.0.0",
+    "bandit>=1.7.0",
+    "safety>=2.0.0",
 ]
 
 [tool.hatch.build.targets.wheel]
