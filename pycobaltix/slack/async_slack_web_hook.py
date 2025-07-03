@@ -1,5 +1,5 @@
 import json
-from typing import Optional
+from typing import Any
 
 import aiohttp
 from slack_sdk.errors import SlackApiError
@@ -16,9 +16,7 @@ class AsyncSlackWebHook:
     def __init__(self, webhook_url: str) -> None:
         self.webhook_url = webhook_url
 
-    async def send_slack_message(
-        self, title="", content: Optional[str] = None, detail: Optional[str] = None
-    ):
+    async def send_slack_message(self, title: str, content: str = "", detail: str = ""):
         """
         슬랙 메시지 전송 함수 (비동기)
         Function to send Slack message (async)
@@ -39,13 +37,10 @@ class AsyncSlackWebHook:
             None
         """
 
-        content = content or ""
-        detail = detail or ""
-
         # 텍스트 버전 메시지 생성 / Create text version of message
         text = f"{title}\n{content}\n{detail}".strip()
 
-        blocks = [
+        blocks: list[dict[str, Any]] = [
             {
                 "type": "section",
                 "text": {"type": "mrkdwn", "text": f"*{title}*\n{content}"},
@@ -129,9 +124,7 @@ class AsyncSlackBot:
                         f"the response is:\n{response_text}"
                     )
 
-    async def send_slack_message(
-        self, title="", content: Optional[str] = None, detail: Optional[str] = None
-    ):
+    async def send_slack_message(self, title: str, content: str = "", detail: str = ""):
         """
         슬랙 메시지 전송 함수 (비동기)
         Function to send Slack message (async)
@@ -151,13 +144,10 @@ class AsyncSlackBot:
             str: timestamp optional
         """
 
-        content = content or ""
-        detail = detail or ""
-
         # 텍스트 버전 메시지 생성 / Create text version of message
         text = f"{title}\n{content}\n{detail}".strip()
 
-        blocks = [
+        blocks: list[dict[str, Any]] = [
             {
                 "type": "section",
                 "text": {"type": "mrkdwn", "text": f"*{title}*\n{content}"},
