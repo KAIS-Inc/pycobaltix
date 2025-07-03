@@ -1,5 +1,8 @@
+import asyncio
+import logging
 import math
 import os
+import time
 from abc import ABC, abstractmethod
 from typing import Any, Dict
 
@@ -9,6 +12,8 @@ from pycobaltix.public.vworld.response.buldSnList import BuildingInfo
 from pycobaltix.public.vworld.response.ladfrlList import LandInfo
 from pycobaltix.public.vworld.response_format import ResponseFormat
 from pycobaltix.schemas.responses import PaginatedAPIResponse, PaginationInfo
+
+logger = logging.getLogger(__name__)
 
 
 class BaseVWorldAPI(ABC):
@@ -124,12 +129,45 @@ class VWorldAPI(BaseVWorldAPI):
     """V-World API 동기 클라이언트"""
 
     def _make_request(self, endpoint: str, **params) -> Dict[str, Any]:
-        """동기 HTTP 요청"""
+        """동기 HTTP 요청 (재시도 로직 포함)"""
         filtered_params = self._prepare_params(**params)
         url = f"{self.base_url}{endpoint}"
-        response = httpx.get(url, params=filtered_params)
-        response.raise_for_status()
-        return response.json()
+
+        max_retries = 5  # 최대 재시도 횟수
+        base_delay = 1.0  # 기본 지연 시간 (초)
+
+        for attempt in range(max_retries + 1):  # 0부터 시작하므로 +1
+            try:
+                response = httpx.get(url, params=filtered_params, timeout=30.0)
+                response.raise_for_status()
+                return response.json()
+
+            except (
+                httpx.HTTPStatusError,
+                httpx.RequestError,
+                httpx.TimeoutException,
+            ) as e:
+                if attempt == max_retries:
+                    # 마지막 시도에서도 실패한 경우
+                    logger.error(
+                        f"API 요청 실패 (최대 재시도 {max_retries}회 초과): {url}"
+                    )
+                    raise
+
+                # 재시도 대기 시간 계산 (exponential backoff)
+                delay = base_delay * (2**attempt)
+                logger.warning(
+                    f"API 요청 실패 (시도 {attempt + 1}/{max_retries + 1}), {delay}초 후 재시도: {str(e)}"
+                )
+                time.sleep(delay)
+
+            except Exception as e:
+                # 예상치 못한 에러는 즉시 재발생
+                logger.error(f"예상치 못한 에러 발생: {str(e)}")
+                raise
+
+        # 이 라인은 절대 실행되지 않지만 린터 만족용
+        raise RuntimeError("예상치 못한 코드 경로")
 
     def buldSnList(
         self,
@@ -191,14 +229,46 @@ class AsyncVWorldAPI(BaseVWorldAPI):
     """V-World API 비동기 클라이언트"""
 
     async def _make_request(self, endpoint: str, **params) -> Dict[str, Any]:
-        """비동기 HTTP 요청"""
+        """비동기 HTTP 요청 (재시도 로직 포함)"""
         filtered_params = self._prepare_params(**params)
         url = f"{self.base_url}{endpoint}"
 
-        async with httpx.AsyncClient() as client:
-            response = await client.get(url, params=filtered_params)
-            response.raise_for_status()
-            return response.json()
+        max_retries = 5  # 최대 재시도 횟수
+        base_delay = 1.0  # 기본 지연 시간 (초)
+
+        for attempt in range(max_retries + 1):  # 0부터 시작하므로 +1
+            try:
+                async with httpx.AsyncClient(timeout=30.0) as client:
+                    response = await client.get(url, params=filtered_params)
+                    response.raise_for_status()
+                    return response.json()
+
+            except (
+                httpx.HTTPStatusError,
+                httpx.RequestError,
+                httpx.TimeoutException,
+            ) as e:
+                if attempt == max_retries:
+                    # 마지막 시도에서도 실패한 경우
+                    logger.error(
+                        f"API 요청 실패 (최대 재시도 {max_retries}회 초과): {url}"
+                    )
+                    raise
+
+                # 재시도 대기 시간 계산 (exponential backoff)
+                delay = base_delay * (2**attempt)
+                logger.warning(
+                    f"API 요청 실패 (시도 {attempt + 1}/{max_retries + 1}), {delay}초 후 재시도: {str(e)}"
+                )
+                await asyncio.sleep(delay)
+
+            except Exception as e:
+                # 예상치 못한 에러는 즉시 재발생
+                logger.error(f"예상치 못한 에러 발생: {str(e)}")
+                raise
+
+        # 이 라인은 절대 실행되지 않지만 린터 만족용
+        raise RuntimeError("예상치 못한 코드 경로")
 
     async def buldSnList(
         self,
