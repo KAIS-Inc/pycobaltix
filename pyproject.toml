@@ -49,3 +49,8 @@ dev = [
 
 [tool.hatch.build.targets.wheel]
 packages = ["pycobaltix"]
+
+[dependency-groups]
+dev = [
+    "mypy>=1.16.0",
+]
