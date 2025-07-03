@@ -177,7 +177,7 @@ class VWorldAPI(BaseVWorldAPI):
         numOfRows: int = 100,
         pageNo: int = 1,
     ) -> PaginatedAPIResponse[LandInfo]:
-        """땅 관련 응답 파싱 (공통 로직)"""
+        """토지 임야 목록 조회"""
         response = self._make_request(
             "/ned/data/ladfrlList",
             pnu=pnu,
@@ -246,7 +246,7 @@ class AsyncVWorldAPI(BaseVWorldAPI):
         numOfRows: int = 100,
         pageNo: int = 1,
     ) -> PaginatedAPIResponse[LandInfo]:
-        """땅 관련 응답 파싱 (공통 로직)"""
+        """토지 임야 목록 조회"""
         response = await self._make_request(
             "/ned/data/ladfrlList",
             pnu=pnu,
