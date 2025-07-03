@@ -1,20 +1,24 @@
-from typing import Optional
-import requests
 import json
+from typing import Optional
+
+import requests
 from slack_sdk import WebClient
 from slack_sdk.errors import SlackApiError
+
 
 class SlackWebHook:
     """웹훅 생성자
 
-        Args:
-            webhook_url (str): 웹훅 URL
-        """
-    def __init__(self, webhook_url: str) -> None:
+    Args:
+        webhook_url (str): 웹훅 URL
+    """
 
+    def __init__(self, webhook_url: str) -> None:
         self.webhook_url = webhook_url
 
-    def send_slack_message(self, title="", content: Optional[str] = None, detail: Optional[str] = None):
+    def send_slack_message(
+        self, title="", content: Optional[str] = None, detail: Optional[str] = None
+    ):
         """
         슬랙 메시지 전송 함수
         Function to send Slack message
@@ -45,35 +49,33 @@ class SlackWebHook:
         blocks = [
             {
                 "type": "section",
-                "text": {
-                    "type": "mrkdwn",
-                    "text": f"*{title}*\n{content}"
-                }
+                "text": {"type": "mrkdwn", "text": f"*{title}*\n{content}"},
             }
         ]
 
         if detail:
-            blocks.append({
-                "type": "context",
-                "elements": [
-                    {
-                        "type": "mrkdwn",
-                        "text": f"{detail}"
-                    }
-                ]
-            })
+            blocks.append(
+                {
+                    "type": "context",
+                    "elements": [{"type": "mrkdwn", "text": f"{detail}"}],
+                }
+            )
 
         if self.webhook_url:
             headers = {"Content-Type": "application/json"}
             data = {"blocks": blocks, "text": text}  # text 추가 / Add text
             response = requests.post(
-                self.webhook_url, headers=headers, data=json.dumps(data))
+                self.webhook_url, headers=headers, data=json.dumps(data)
+            )
             if response.status_code != 200:
                 raise ValueError(
-                    f"웹훅 요청 중 오류 발생: {response.status_code}, 응답: {response.text} / Error occurred during webhook request: {response.status_code}, response: {response.text}")
+                    f"웹훅 요청 중 오류 발생: {response.status_code}, 응답: {response.text} / Error occurred during webhook request: {response.status_code}, response: {response.text}"
+                )
         else:
             raise ValueError(
-                "웹훅 URL 을 제공해야 합니다. / You must provide either webhook URL.")
+                "웹훅 URL 을 제공해야 합니다. / You must provide either webhook URL."
+            )
+
 
 class SlackBot:
     """
@@ -92,7 +94,11 @@ class SlackBot:
         self.channel = channel
         self.bot_token = bot_token
 
-    def update_slack_message(self, timestamp: str, title: str,):
+    def update_slack_message(
+        self,
+        timestamp: str,
+        title: str,
+    ):
         """
         슬랙메시지 갱신 메서드
         Method to update Slack message
@@ -109,21 +115,21 @@ class SlackBot:
 
         headers = {
             "Content-Type": "application/json",
-            "Authorization": f"Bearer {self.bot_token}"
+            "Authorization": f"Bearer {self.bot_token}",
         }
         message = f"*{title}*"
-        data = {
-            "channel": self.channel,
-            "ts": timestamp,
-            "text": message
-        }
+        data = {"channel": self.channel, "ts": timestamp, "text": message}
         response = requests.post(
-            "https://slack.com/api/chat.update", headers=headers, json=data)
+            "https://slack.com/api/chat.update", headers=headers, json=data
+        )
         if response.status_code != 200:
             raise ValueError(
-                f"Request to slack returned an error {response.status_code}, the response is:\n{response.text}")
+                f"Request to slack returned an error {response.status_code}, the response is:\n{response.text}"
+            )
 
-    def send_slack_message(self, title="", content: Optional[str] = None, detail: Optional[str] = None):
+    def send_slack_message(
+        self, title="", content: Optional[str] = None, detail: Optional[str] = None
+    ):
         """
         슬랙 메시지 전송 함수
         Function to send Slack message
@@ -153,30 +159,24 @@ class SlackBot:
         blocks = [
             {
                 "type": "section",
-                "text": {
-                    "type": "mrkdwn",
-                    "text": f"*{title}*\n{content}"
-                }
+                "text": {"type": "mrkdwn", "text": f"*{title}*\n{content}"},
             }
         ]
 
         if detail:
-            blocks.append({
-                "type": "context",
-                "elements": [
-                    {
-                        "type": "mrkdwn",
-                        "text": f"{detail}"
-                    }
-                ]
-            })
+            blocks.append(
+                {
+                    "type": "context",
+                    "elements": [{"type": "mrkdwn", "text": f"{detail}"}],
+                }
+            )
 
         try:
             client = WebClient(token=self.bot_token)
             response = client.chat_postMessage(
                 channel=self.channel,
                 blocks=blocks,
-                text=text
+                text=text,
                 # text 파라미터 추가 / Add text parameter
             )
             return response["ts"]

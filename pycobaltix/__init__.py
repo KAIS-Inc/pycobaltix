@@ -6,12 +6,11 @@ __version__ = "0.1.0"
 
 from pycobaltix.schemas.responses import (
     APIResponse,
+    ErrorResponse,
     PaginatedAPIResponse,
     PaginationInfo,
-    ErrorResponse,
 )
-
-from pycobaltix.slack import SlackWebHook, SlackBot
+from pycobaltix.slack import SlackBot, SlackWebHook
 
 __all__ = [
     "APIResponse",

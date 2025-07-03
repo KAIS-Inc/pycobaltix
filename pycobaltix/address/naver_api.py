@@ -7,6 +7,7 @@ from pycobaltix.address.convert_coordinate import (
 from pycobaltix.address.endpoint import NaverEndpoint
 from pycobaltix.address.model import ConvertedCoordinate, NaverAddress
 
+
 class NaverAPI:
     def __init__(self, api_key_id: str, api_key: str):
         self.api_key_id = api_key_id

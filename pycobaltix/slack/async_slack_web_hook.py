@@ -1,8 +1,9 @@
-from typing import Optional
-import aiohttp
 import json
-from slack_sdk.web.async_client import AsyncWebClient
+from typing import Optional
+
+import aiohttp
 from slack_sdk.errors import SlackApiError
+from slack_sdk.web.async_client import AsyncWebClient
 
 
 class AsyncSlackWebHook:
@@ -15,7 +16,9 @@ class AsyncSlackWebHook:
     def __init__(self, webhook_url: str) -> None:
         self.webhook_url = webhook_url
 
-    async def send_slack_message(self, title="", content: Optional[str] = None, detail: Optional[str] = None):
+    async def send_slack_message(
+        self, title="", content: Optional[str] = None, detail: Optional[str] = None
+    ):
         """
         슬랙 메시지 전송 함수 (비동기)
         Function to send Slack message (async)
@@ -45,23 +48,17 @@ class AsyncSlackWebHook:
         blocks = [
             {
                 "type": "section",
-                "text": {
-                    "type": "mrkdwn",
-                    "text": f"*{title}*\n{content}"
-                }
+                "text": {"type": "mrkdwn", "text": f"*{title}*\n{content}"},
             }
         ]
 
         if detail:
-            blocks.append({
-                "type": "context",
-                "elements": [
-                    {
-                        "type": "mrkdwn",
-                        "text": f"{detail}"
-                    }
-                ]
-            })
+            blocks.append(
+                {
+                    "type": "context",
+                    "elements": [{"type": "mrkdwn", "text": f"{detail}"}],
+                }
+            )
 
         if self.webhook_url:
             headers = {"Content-Type": "application/json"}
@@ -69,9 +66,7 @@ class AsyncSlackWebHook:
 
             async with aiohttp.ClientSession() as session:
                 async with session.post(
-                    self.webhook_url,
-                    headers=headers,
-                    data=json.dumps(data)
+                    self.webhook_url, headers=headers, data=json.dumps(data)
                 ) as response:
                     if response.status != 200:
                         response_text = await response.text()
@@ -118,20 +113,14 @@ class AsyncSlackBot:
 
         headers = {
             "Content-Type": "application/json",
-            "Authorization": f"Bearer {self.bot_token}"
+            "Authorization": f"Bearer {self.bot_token}",
         }
         message = f"*{title}*"
-        data = {
-            "channel": self.channel,
-            "ts": timestamp,
-            "text": message
-        }
+        data = {"channel": self.channel, "ts": timestamp, "text": message}
 
         async with aiohttp.ClientSession() as session:
             async with session.post(
-                "https://slack.com/api/chat.update",
-                headers=headers,
-                json=data
+                "https://slack.com/api/chat.update", headers=headers, json=data
             ) as response:
                 if response.status != 200:
                     response_text = await response.text()
@@ -140,7 +129,9 @@ class AsyncSlackBot:
                         f"the response is:\n{response_text}"
                     )
 
-    async def send_slack_message(self, title="", content: Optional[str] = None, detail: Optional[str] = None):
+    async def send_slack_message(
+        self, title="", content: Optional[str] = None, detail: Optional[str] = None
+    ):
         """
         슬랙 메시지 전송 함수 (비동기)
         Function to send Slack message (async)
@@ -169,29 +160,21 @@ class AsyncSlackBot:
         blocks = [
             {
                 "type": "section",
-                "text": {
-                    "type": "mrkdwn",
-                    "text": f"*{title}*\n{content}"
-                }
+                "text": {"type": "mrkdwn", "text": f"*{title}*\n{content}"},
             }
         ]
 
         if detail:
-            blocks.append({
-                "type": "context",
-                "elements": [
-                    {
-                        "type": "mrkdwn",
-                        "text": f"{detail}"
-                    }
-                ]
-            })
+            blocks.append(
+                {
+                    "type": "context",
+                    "elements": [{"type": "mrkdwn", "text": f"{detail}"}],
+                }
+            )
 
         try:
             response = await self.client.chat_postMessage(
-                channel=self.channel,
-                blocks=blocks,
-                text=text
+                channel=self.channel, blocks=blocks, text=text
             )
             return response["ts"]
         except SlackApiError as e:

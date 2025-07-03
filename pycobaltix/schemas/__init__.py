@@ -4,9 +4,9 @@ Schema 모듈
 
 from pycobaltix.schemas.responses import (
     APIResponse,
+    ErrorResponse,
     PaginatedAPIResponse,
     PaginationInfo,
-    ErrorResponse,
 )
 
 __all__ = [
