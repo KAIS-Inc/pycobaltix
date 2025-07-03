@@ -12,6 +12,7 @@ class NaverAddress:
     building_name: str | None
     land_number: str | None
     postal_code: str | None
+    pnu: str | None
 
     def __init__(self, data: dict):
         self.sido = data.get("SIDO", {}).get("longName", None)
