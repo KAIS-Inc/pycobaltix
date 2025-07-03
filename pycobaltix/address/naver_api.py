@@ -15,9 +15,77 @@ class NaverAPI:
         self.api_key_id = api_key_id
         self.api_key = api_key
 
+    def _generate_pnu(
+        self, legal_district_code: str, land_number: str | None
+    ) -> str | None:
+        """
+        PNU (부동산고유번호) 생성
+
+        Args:
+            legal_district_code: 법정동 코드 (10자리)
+            land_number: 지번 (예: "123-4", "산74", "산92-1")
+
+        Returns:
+            PNU 코드 (19자리) 또는 None
+        """
+        try:
+            if not legal_district_code or len(legal_district_code) != 10:
+                print(f"유효하지 않은 법정동 코드: {legal_district_code}")
+                return None
+
+            if not land_number:
+                print("지번 정보 없음")
+                return None
+
+            # 지목 타입 결정: "산"으로 시작하면 2(임야), 아니면 1(대지)
+            land_type = "2" if land_number.startswith("산") else "1"
+
+            # "산" 문자 제거하고 숫자 부분만 추출
+            clean_jibun = (
+                land_number.replace("산", "")
+                if land_number.startswith("산")
+                else land_number
+            )
+
+            # 지번 파싱 (예: "123-4" -> 본번: 123, 부번: 4)
+            if "-" in clean_jibun:
+                bonbun, bubun = clean_jibun.split("-", 1)
+            else:
+                bonbun, bubun = clean_jibun, "0"
+
+            # 숫자 변환 및 유효성 검사
+            try:
+                main_num = int(bonbun.strip())
+                sub_num = int(bubun.strip())
+            except ValueError:
+                print(f"유효하지 않은 지번 형식: {land_number}")
+                return None
+
+            # 본번과 부번을 4자리로 포맷 (0 패딩)
+            bonbun_padded = f"{main_num:04d}"
+            bubun_padded = f"{sub_num:04d}"
+
+            # 범위 체크
+            if main_num > 9999 or sub_num > 9999:
+                print(f"지번이 범위를 초과함: {land_number}")
+                return None
+
+            # PNU 구성: 법정동코드(10) + 지목(1) + 본번(4) + 부번(4)
+            pnu = f"{legal_district_code}{land_type}{bonbun_padded}{bubun_padded}"
+
+            if len(pnu) != 19:
+                print(f"PNU 길이 오류: {pnu} (길이: {len(pnu)})")
+                return None
+
+            return pnu
+
+        except Exception as e:
+            print(f"PNU 생성 중 오류: {e}")
+            return None
+
     def _reverse_geocoding(self, x: float, y: float) -> Dict[str, Any] | None:
         """역 지오코딩을 통해 좌표에서 지역 정보를 가져옵니다."""
-        url = f"{NaverEndpoint.reverse_geocoding.value}?coords={x},{y}"
+        url = f"{NaverEndpoint.reverse_geocoding.value}?coords={x},{y}&output=json"
         response = requests.get(
             url,
             headers={
@@ -25,7 +93,6 @@ class NaverAPI:
                 "X-NCP-APIGW-API-KEY": self.api_key,
             },
         )
-        response.raise_for_status()
 
         json_data = response.json()
 
@@ -42,7 +109,7 @@ class NaverAPI:
 
         # 필요한 정보 추출
         return {
-            "pnu": first_result.get("code", {}).get("id"),
+            "legal_district": first_result.get("code", {}).get("id"),
             "area1": first_result.get("region", {})
             .get("area1", {})
             .get("name"),  # 시/도
@@ -84,9 +151,11 @@ class NaverAPI:
             reverse_geocoding_data = self._reverse_geocoding(wgs84_x, wgs84_y)
             coordinates = wgs84_to_tm128(wgs84_x, wgs84_y)
             naver_address = NaverAddress(transformed_elements_dict)
-            naver_address.pnu = (
-                reverse_geocoding_data.get("pnu") if reverse_geocoding_data else None
-            )
+            if reverse_geocoding_data:
+                naver_address.pnu = self._generate_pnu(
+                    reverse_geocoding_data.get("legal_district", ""),
+                    naver_address.land_number,
+                )
             return ConvertedCoordinate(
                 tm128_coordinate=coordinates,
                 wgs84_coordinate=tm128_to_wgs84(
