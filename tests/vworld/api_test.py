@@ -119,11 +119,11 @@ def quick_test():
         return
 
     api = VWorldAPI(api_key=api_key, domain=domain)
-    result = api.buldSnList(pnu="1111010100100010000")
+    result = api.ladfrlList(pnu="1111010100100010000")
 
     print(f"🎯 빠른 테스트 결과: {result.success}")
     if result.data:
-        print(f"📍 첫 번째 건물: {result.data[0].buldNm}")
+        print(f"📍 첫 번째 건물: {result.data[0].ldCodeNm}")
 
     buldHoCoList = api.buldHoCoList(pnu="1111010100100010000", buldDongNm="10", buldHoNm="1032")
     if buldHoCoList.data:

@@ -1,37 +1,23 @@
+from dataclasses import dataclass
+
+
+@dataclass
 class LandInfo:
-    def __init__(
-        self,
-        pnu: str,
-        ldCodeNm: str,
-        ldCode: str,
-        mnnmSlno: str,
-        regstrSeCode: str,
-        regstrSeCodeNm: str,
-        lndcgrCode: str,
-        lndcgrCodeNm: str,
-        lndpclAr: str,
-        posesnSeCode: str,
-        posesnSeCodeNm: str,
-        cnrsPsnCo: str,
-        ladFrtlSc: str,
-        ladFrtlScNm: str,
-        lastUpdtDt: str,
-    ):
-        self.pnu = pnu
-        self.ldCodeNm = ldCodeNm
-        self.ldCode = ldCode
-        self.mnnmSlno = mnnmSlno
-        self.regstrSeCode = regstrSeCode
-        self.regstrSeCodeNm = regstrSeCodeNm
-        self.lndcgrCode = lndcgrCode
-        self.lndcgrCodeNm = lndcgrCodeNm
-        self.lndpclAr = lndpclAr
-        self.posesnSeCode = posesnSeCode
-        self.posesnSeCodeNm = posesnSeCodeNm
-        self.cnrsPsnCo = cnrsPsnCo
-        self.ladFrtlSc = ladFrtlSc
-        self.ladFrtlScNm = ladFrtlScNm
-        self.lastUpdtDt = lastUpdtDt
+    pnu: str
+    ldCodeNm: str
+    ldCode: str
+    mnnmSlno: str
+    regstrSeCode: str
+    regstrSeCodeNm: str
+    lndcgrCode: str
+    lndcgrCodeNm: str
+    lndpclAr: str
+    posesnSeCode: str
+    posesnSeCodeNm: str
+    cnrsPsnCo: str
+    ladFrtlSc: str
+    ladFrtlScNm: str
+    lastUpdtDt: str
 
     def to_dict(self):
         return {
