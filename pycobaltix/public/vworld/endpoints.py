@@ -33,7 +33,7 @@ class BaseVWorldAPI(ABC):
 
     def _parse_building_response(
         self, response: Dict[str, Any], numOfRows: int, pageNo: int
-    ) -> PaginatedAPIResponse:
+    ) -> PaginatedAPIResponse[BuildingInfo]:
         """건물 관련 응답 파싱 (공통 로직)"""
         if "ldaregVOList" not in response:
             return PaginatedAPIResponse(
@@ -95,7 +95,7 @@ class VWorldAPI(BaseVWorldAPI):
         agbldgSn: str | None = None,
         numOfRows: int = 100,
         pageNo: int = 1,
-    ) -> PaginatedAPIResponse:
+    ) -> PaginatedAPIResponse[BuildingInfo]:
         """건물일련번호조회"""
         response = self._make_request(
             "/ned/data/buldSnList",
@@ -115,7 +115,7 @@ class VWorldAPI(BaseVWorldAPI):
         buldHoNm: str | None = None,
         numOfRows: int = 100,
         pageNo: int = 1,
-    ) -> PaginatedAPIResponse:
+    ) -> PaginatedAPIResponse[BuildingInfo]:
         """건물호수조회"""
         response = self._make_request(
             "/ned/data/buldHoCoList",
@@ -149,7 +149,7 @@ class AsyncVWorldAPI(BaseVWorldAPI):
         agbldgSn: str | None = None,
         numOfRows: int = 100,
         pageNo: int = 1,
-    ) -> PaginatedAPIResponse:
+    ) -> PaginatedAPIResponse[BuildingInfo]:
         """건물일련번호조회 (비동기)"""
         response = await self._make_request(
             "/ned/data/buldSnList",
@@ -169,7 +169,7 @@ class AsyncVWorldAPI(BaseVWorldAPI):
         buldHoNm: str | None = None,
         numOfRows: int = 100,
         pageNo: int = 1,
-    ) -> PaginatedAPIResponse:
+    ) -> PaginatedAPIResponse[BuildingInfo]:
         """건물호수조회 (비동기)"""
         response = await self._make_request(
             "/ned/data/buldHoCoList",
