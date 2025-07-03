@@ -19,6 +19,7 @@ classifiers = [
 requires-python = ">=3.11"
 dependencies = [
     "aiohttp>=3.12.9",
+    "dotenv>=0.9.9",
     "httpx>=0.28.1",
     "pydantic>=2.0.0",
     "pyproj>=3.7.1",
