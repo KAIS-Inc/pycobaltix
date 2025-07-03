@@ -6,6 +6,7 @@ from typing import Any, Dict
 import httpx
 
 from pycobaltix.public.vworld.response.buldSnList import BuildingInfo
+from pycobaltix.public.vworld.response.ladfrlList import LandInfo
 from pycobaltix.public.vworld.response_format import ResponseFormat
 from pycobaltix.schemas.responses import PaginatedAPIResponse, PaginationInfo
 
@@ -72,6 +73,47 @@ class BaseVWorldAPI(ABC):
             pagination=pagination,
         )
 
+    def _parse_land_response(
+        self, response: Dict[str, Any], numOfRows: int, pageNo: int
+    ) -> PaginatedAPIResponse[LandInfo]:
+        """땅 관련 응답 파싱 (공통 로직)"""
+        if "ladfrlVOList" not in response:
+            return PaginatedAPIResponse(
+                data=[],
+                pagination=PaginationInfo(
+                    currentPage=1,
+                    totalPages=1,
+                    totalCount=0,
+                    count=0,
+                    hasNext=False,
+                    hasPrevious=False,
+                ),
+            )
+
+        total_count = int(response["ladfrlVOList"]["totalCount"])
+        total_pages = math.ceil(total_count / numOfRows)
+        current_page = int(response["ladfrlVOList"]["pageNo"])
+
+        pagination = PaginationInfo(
+            currentPage=current_page,
+            totalPages=total_pages,
+            totalCount=total_count,
+            count=numOfRows,
+            hasNext=current_page < total_pages,
+            hasPrevious=current_page > 1,
+        )
+
+        return PaginatedAPIResponse(
+            success=True,
+            message="success",
+            status=200,
+            data=[
+                LandInfo.from_dict(item)
+                for item in response["ladfrlVOList"]["ladfrlVOList"]
+            ],
+            pagination=pagination,
+        )
+
     @abstractmethod
     def _make_request(self, endpoint: str, **params) -> Dict[str, Any]:
         """HTTP 요청 실행 (동기/비동기에서 각각 구현)"""
@@ -129,6 +171,21 @@ class VWorldAPI(BaseVWorldAPI):
         )
         return self._parse_building_response(response, numOfRows, pageNo)
 
+    def ladfrlList(
+        self,
+        pnu: str,
+        numOfRows: int = 100,
+        pageNo: int = 1,
+    ) -> PaginatedAPIResponse[LandInfo]:
+        """땅 관련 응답 파싱 (공통 로직)"""
+        response = self._make_request(
+            "/ned/data/ladfrlList",
+            pnu=pnu,
+            numOfRows=numOfRows,
+            pageNo=pageNo,
+        )
+        return self._parse_land_response(response, numOfRows, pageNo)
+
 
 class AsyncVWorldAPI(BaseVWorldAPI):
     """V-World API 비동기 클라이언트"""
@@ -182,3 +239,18 @@ class AsyncVWorldAPI(BaseVWorldAPI):
             pageNo=pageNo,
         )
         return self._parse_building_response(response, numOfRows, pageNo)
+
+    async def ladfrlList(
+        self,
+        pnu: str,
+        numOfRows: int = 100,
+        pageNo: int = 1,
+    ) -> PaginatedAPIResponse[LandInfo]:
+        """땅 관련 응답 파싱 (공통 로직)"""
+        response = await self._make_request(
+            "/ned/data/ladfrlList",
+            pnu=pnu,
+            numOfRows=numOfRows,
+            pageNo=pageNo,
+        )
+        return self._parse_land_response(response, numOfRows, pageNo)
