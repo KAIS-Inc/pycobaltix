@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "pycobaltix"
-version = "0.1.2"
+version = "0.1.3"
 description = "코발틱스 파이썬 유틸리티 패키지"
 readme = "README.md"
 authors = [
