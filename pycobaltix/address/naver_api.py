@@ -1,3 +1,4 @@
+import os
 from typing import Any, Dict
 
 import requests
@@ -11,9 +12,9 @@ from pycobaltix.address.model import ConvertedCoordinate, NaverAddress
 
 
 class NaverAPI:
-    def __init__(self, api_key_id: str, api_key: str):
-        self.api_key_id = api_key_id
-        self.api_key = api_key
+    def __init__(self, api_key_id: str | None = None, api_key: str | None = None):
+        self.api_key_id = api_key_id or os.getenv("NCP_APIGW_API_KEY_ID", "")
+        self.api_key = api_key or os.getenv("NCP_APIGW_API_KEY", "")
 
     def _generate_pnu(
         self, legal_district_code: str, land_number: str | None
@@ -155,6 +156,11 @@ class NaverAPI:
                 naver_address.pnu = self._generate_pnu(
                     reverse_geocoding_data.get("legal_district", ""),
                     naver_address.land_number,
+                )
+                naver_address.legal_district = (
+                    reverse_geocoding_data.get("legal_district", "")
+                    if reverse_geocoding_data
+                    else None
                 )
             return ConvertedCoordinate(
                 tm128_coordinate=coordinates,
