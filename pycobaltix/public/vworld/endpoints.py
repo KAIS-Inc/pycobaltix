@@ -138,7 +138,7 @@ class VWorldAPI(BaseVWorldAPI):
 
         for attempt in range(max_retries + 1):  # 0부터 시작하므로 +1
             try:
-                response = httpx.get(url, params=filtered_params, timeout=30.0)
+                response = httpx.get(url, params=filtered_params, timeout=5.0)
                 response.raise_for_status()
                 return response.json()
 
@@ -155,7 +155,7 @@ class VWorldAPI(BaseVWorldAPI):
                     raise
 
                 # 재시도 대기 시간 계산 (exponential backoff)
-                delay = base_delay * (2**attempt)
+                delay = base_delay
                 logger.warning(
                     f"API 요청 실패 (시도 {attempt + 1}/{max_retries + 1}), {delay}초 후 재시도: {str(e)}"
                 )
@@ -238,7 +238,7 @@ class AsyncVWorldAPI(BaseVWorldAPI):
 
         for attempt in range(max_retries + 1):  # 0부터 시작하므로 +1
             try:
-                async with httpx.AsyncClient(timeout=30.0) as client:
+                async with httpx.AsyncClient(timeout=5.0) as client:
                     response = await client.get(url, params=filtered_params)
                     response.raise_for_status()
                     return response.json()
@@ -256,7 +256,7 @@ class AsyncVWorldAPI(BaseVWorldAPI):
                     raise
 
                 # 재시도 대기 시간 계산 (exponential backoff)
-                delay = base_delay * (2**attempt)
+                delay = base_delay
                 logger.warning(
                     f"API 요청 실패 (시도 {attempt + 1}/{max_retries + 1}), {delay}초 후 재시도: {str(e)}"
                 )

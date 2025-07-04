@@ -99,7 +99,7 @@ class DataGOKRAPI(BaseDataGOKRAPI):
                     )
                     raise
 
-                delay = base_delay * (2**attempt)
+                delay = base_delay
                 logger.warning(
                     f"API 요청 실패 (시도 {attempt + 1}/{max_retries + 1}), {delay}초 후 재시도: {str(e)}"
                 )
@@ -173,7 +173,7 @@ class AsyncDataGOKRAPI(BaseDataGOKRAPI):
                     )
                     raise
 
-                delay = base_delay * (2**attempt)
+                delay = base_delay
                 logger.warning(
                     f"API 요청 실패 (시도 {attempt + 1}/{max_retries + 1}), {delay}초 후 재시도: {str(e)}"
                 )
