@@ -17,7 +17,7 @@ class NaverAPI:
 
     def generate_static_map_image(self, x: float, y: float, zoom: int = 15) -> bytes:
         # 19가 가깝고, 16이 포괄적
-        static_map_url = f"{NaverEndpoint.static_map.value}?w=512&h=512&markers=type:d|size:mid|pos:{x}%20{y}|color:red&scale=2&level={zoom}&center={x}%20{y}"
+        static_map_url = f"{NaverEndpoint.static_map.value}?w=1024&h=1024&markers=type:d|size:mid|pos:{x}%20{y}|color:red&scale=2&level={zoom}&center={x}%20{y}"
         response = requests.get(
             static_map_url,
             headers={
