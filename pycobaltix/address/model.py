@@ -3,6 +3,9 @@ from typing import Generic, TypeVar
 
 
 class NaverAddress:
+    road_address: str | None
+    jibun_address: str | None
+    english_address: str | None
     sido: str | None
     sigugun: str | None
     dongmyun: str | None

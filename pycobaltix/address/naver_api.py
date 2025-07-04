@@ -152,6 +152,9 @@ class NaverAPI:
             reverse_geocoding_data = self._reverse_geocoding(wgs84_x, wgs84_y)
             coordinates = wgs84_to_tm128(wgs84_x, wgs84_y)
             naver_address = NaverAddress(transformed_elements_dict)
+            naver_address.road_address = json_data.get("addresses")[0].get("roadAddress")
+            naver_address.jibun_address = json_data.get("addresses")[0].get("jibunAddress")
+            naver_address.english_address = json_data.get("addresses")[0].get("englishAddress")
             if reverse_geocoding_data:
                 naver_address.pnu = self._generate_pnu(
                     reverse_geocoding_data.get("legal_district", ""),
