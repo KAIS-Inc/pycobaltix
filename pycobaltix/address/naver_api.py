@@ -16,6 +16,19 @@ class NaverAPI:
         self.api_key_id = api_key_id or os.getenv("NCP_APIGW_API_KEY_ID", "")
         self.api_key = api_key or os.getenv("NCP_APIGW_API_KEY", "")
 
+    def generate_static_map_image(self, x: float, y: float, zoom: int = 15) -> bytes:
+        # 19가 가깝고, 16이 포괄적
+        static_map_url = f"{NaverEndpoint.static_map.value}?w=512&h=512&markers=type:d|size:mid|pos:{x}%20{y}|color:red&scale=2&level={zoom}&center={x}%20{y}"
+        response = requests.get(
+            static_map_url,
+            headers={
+                "X-NCP-APIGW-API-KEY-ID": self.api_key_id,
+                "X-NCP-APIGW-API-KEY": self.api_key,
+                "Content-Type": "image/jpeg",
+            },
+        )
+        return response.content
+
     def _generate_pnu(
         self, legal_district_code: str, land_number: str | None
     ) -> str | None:
@@ -152,9 +165,15 @@ class NaverAPI:
             reverse_geocoding_data = self._reverse_geocoding(wgs84_x, wgs84_y)
             coordinates = wgs84_to_tm128(wgs84_x, wgs84_y)
             naver_address = NaverAddress(transformed_elements_dict)
-            naver_address.road_address = json_data.get("addresses")[0].get("roadAddress")
-            naver_address.jibun_address = json_data.get("addresses")[0].get("jibunAddress")
-            naver_address.english_address = json_data.get("addresses")[0].get("englishAddress")
+            naver_address.road_address = json_data.get("addresses")[0].get(
+                "roadAddress"
+            )
+            naver_address.jibun_address = json_data.get("addresses")[0].get(
+                "jibunAddress"
+            )
+            naver_address.english_address = json_data.get("addresses")[0].get(
+                "englishAddress"
+            )
             if reverse_geocoding_data:
                 naver_address.pnu = self._generate_pnu(
                     reverse_geocoding_data.get("legal_district", ""),
