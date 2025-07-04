@@ -4,11 +4,10 @@ from typing import Any, Dict
 import requests
 
 from pycobaltix.address.convert_coordinate import (
-    tm128_to_wgs84,
     wgs84_to_tm128,
 )
 from pycobaltix.address.endpoint import NaverEndpoint
-from pycobaltix.address.model import ConvertedCoordinate, NaverAddress
+from pycobaltix.address.model import ConvertedCoordinate, Coordinate, NaverAddress
 
 
 class NaverAPI:
@@ -186,9 +185,9 @@ class NaverAPI:
                 )
             return ConvertedCoordinate(
                 tm128_coordinate=coordinates,
-                wgs84_coordinate=tm128_to_wgs84(
-                    wgs84_x,
-                    wgs84_y,
+                wgs84_coordinate=Coordinate(
+                    x=wgs84_x,
+                    y=wgs84_y,
                 ),
                 transformed_elements=naver_address,
             )
